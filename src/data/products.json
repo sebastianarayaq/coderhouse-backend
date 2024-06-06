@@ -1,0 +1,44 @@
+[
+  {
+    "id": "3",
+    "title": "PC Gamer",
+    "description": "PC Gamer de alta gama",
+    "code": "P001",
+    "price": 2000,
+    "status": true,
+    "stock": 10,
+    "category": "Electrónica",
+    "thumbnails": [
+      "gamer1.jpg",
+      "gamer2.jpg"
+    ]
+  },
+  {
+    "id": "4",
+    "title": "PC Gamer",
+    "description": "PC Gamer de alta gama",
+    "code": "P001",
+    "price": 2000,
+    "status": true,
+    "stock": 10,
+    "category": "Electrónica",
+    "thumbnails": [
+      "gamer1.jpg",
+      "gamer2.jpg"
+    ]
+  },
+  {
+    "id": "5",
+    "title": "PC Gamer",
+    "description": "PC Gamer de alta gama",
+    "code": "P001",
+    "price": 2000,
+    "status": true,
+    "stock": 10,
+    "category": "Electrónica",
+    "thumbnails": [
+      "gamer1.jpg",
+      "gamer2.jpg"
+    ]
+  }
+]
