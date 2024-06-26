@@ -7,10 +7,8 @@ export const initializeSocket = (io) => {
     connectionCount++;
     console.log(`New client connected. Total connections: ${connectionCount}`);
 
-    // Enviar lista inicial de productos al cliente
     socket.emit("updateProducts", getProducts());
 
-    // Manejar eventos de creación de producto
     socket.on("createProduct", (product) => {
       if (
         !product.title ||
@@ -20,7 +18,7 @@ export const initializeSocket = (io) => {
         !product.stock ||
         !product.category
       ) {
-        return; // No crear producto si faltan datos
+        return; 
       }
       const products = getProducts();
       const id = (products.length ? Math.max(...products.map((p) => parseInt(p.id))) : 0) + 1;
@@ -30,7 +28,6 @@ export const initializeSocket = (io) => {
       io.emit("updateProducts", getProducts());
     });
 
-    // Manejar eventos de eliminación de producto
     socket.on("deleteProduct", (productId) => {
       const products = getProducts();
       const newProducts = products.filter((p) => p.id !== productId);

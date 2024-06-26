@@ -37,14 +37,14 @@ app.use((req, res, next) => {
 app.use("/api/products", productsRouter);
 app.use("/api/carts", cartsRouter);
 
-// Ruta para la vista home.handlebars
+
 app.get("/", (req, res) => {
   const products = getProducts();
-  console.log(products); // Verificar los productos en la consola del servidor
+  console.log(products);
   res.render("home", { title: "Home", products });
 });
 
-// Ruta para la vista realTimeProducts.handlebars
+
 app.get("/realtimeproducts", (req, res) => {
   const products = getProducts();
   res.render("realTimeProducts", { title: "Real-Time Products", products });
