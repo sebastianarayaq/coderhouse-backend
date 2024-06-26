@@ -34,6 +34,18 @@ const getProducts = () => {
   }
 };
 
+//Obtener todos los carros desde carts.json
+router.get("/", (req, res) => {
+  const { limit } = req.query;
+  const carts = getCarts();
+  if (limit) {
+    res.json(carts.slice(0, limit));
+  } else {
+    res.json(carts);
+  }
+})
+
+
 //Crea un nuevo carrito
 router.post("/", (req, res) => {
   const carts = getCarts();
