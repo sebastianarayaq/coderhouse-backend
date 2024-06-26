@@ -9,14 +9,5 @@
     "stock": 10,
     "category": "Computers",
     "thumbnails": []
-  },
-  {
-    "id": "2",
-    "title": "a",
-    "description": "a",
-    "code": "a",
-    "price": "2",
-    "stock": "2",
-    "category": "2"
   }
 ]
