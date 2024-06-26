@@ -1,44 +1,22 @@
 [
   {
-    "id": "3",
+    "id": "1",
     "title": "PC Gamer",
-    "description": "PC Gamer de alta gama",
-    "code": "P001",
+    "description": "High performance PC",
+    "code": "PCG123",
     "price": 2000,
     "status": true,
     "stock": 10,
-    "category": "Electrónica",
-    "thumbnails": [
-      "gamer1.jpg",
-      "gamer2.jpg"
-    ]
+    "category": "Computers",
+    "thumbnails": []
   },
   {
-    "id": "4",
-    "title": "PC Gamer",
-    "description": "PC Gamer de alta gama",
-    "code": "P001",
-    "price": 2000,
-    "status": true,
-    "stock": 10,
-    "category": "Electrónica",
-    "thumbnails": [
-      "gamer1.jpg",
-      "gamer2.jpg"
-    ]
-  },
-  {
-    "id": "5",
-    "title": "PC Gamer",
-    "description": "PC Gamer de alta gama",
-    "code": "P001",
-    "price": 2000,
-    "status": true,
-    "stock": 10,
-    "category": "Electrónica",
-    "thumbnails": [
-      "gamer1.jpg",
-      "gamer2.jpg"
-    ]
+    "id": "2",
+    "title": "a",
+    "description": "a",
+    "code": "a",
+    "price": "2",
+    "stock": "2",
+    "category": "2"
   }
 ]

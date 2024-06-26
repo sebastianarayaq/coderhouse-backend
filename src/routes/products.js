@@ -1,25 +1,9 @@
 import express from "express";
-import fs from "fs";
-import path from "path";
+import { getProducts, saveProducts } from "../utils/productUtils.js";
 
 const router = express.Router();
-const productsFilePath = path.resolve("./src/data/products.json");
 
-const getProducts = () => {
-  try {
-    const data = fs.readFileSync(productsFilePath, "utf-8");
-    return JSON.parse(data) || [];
-  } catch (error) {
-    console.error("Error reading products file:", error);
-    return [];
-  }
-};
-
-const saveProducts = (products) => {
-  fs.writeFileSync(productsFilePath, JSON.stringify(products, null, 2));
-};
-
-//Obtener todos los productos desde products.json o limitando con el valor obtenido desde el req.query
+// Obtener todos los productos
 router.get("/", (req, res) => {
   const { limit } = req.query;
   const products = getProducts();
@@ -30,7 +14,7 @@ router.get("/", (req, res) => {
   }
 });
 
-//Obtener producto segun el ID indicado
+// Obtener producto por ID
 router.get("/:pid", (req, res) => {
   const products = getProducts();
   const product = products.find((p) => p.id === req.params.pid);
@@ -43,7 +27,7 @@ router.get("/:pid", (req, res) => {
   }
 });
 
-//Crear producto validando que se ingresen los datos requeridos
+// Crear producto
 router.post("/", (req, res) => {
   const {
     title,
@@ -78,13 +62,17 @@ router.post("/", (req, res) => {
   };
   products.push(newProduct);
   saveProducts(products);
+
+  // Emitir evento de creación de producto a través de WebSocket
+  req.app.get("io").emit("updateProducts", getProducts());
+
   res.status(201).json({
     message: "Product successfully created",
     newProduct,
   });
 });
 
-//Actualizar producto segun el ID indicado
+// Actualizar producto
 router.put("/:pid", (req, res) => {
   const products = getProducts();
   const productIndex = products.findIndex((p) => p.id === req.params.pid);
@@ -101,10 +89,14 @@ router.put("/:pid", (req, res) => {
   };
   products[productIndex] = updatedProduct;
   saveProducts(products);
+
+  // Emitir evento de actualización de producto a través de WebSocket
+  req.app.get("io").emit("updateProducts", getProducts());
+
   res.json({ message: "Product successfully updated", updatedProduct });
 });
 
-//Eliminar producto segun el ID indicado
+// Eliminar producto
 router.delete("/:pid", (req, res) => {
   const products = getProducts();
   const newProducts = products.filter((p) => p.id !== req.params.pid);
@@ -116,11 +108,13 @@ router.delete("/:pid", (req, res) => {
   }
 
   saveProducts(newProducts);
-  res
-    .status(200)
-    .json({
-      message: `Product with ID ${req.params.pid} successfully deleted`,
-    });
+
+  // Emitir evento de eliminación de producto a través de WebSocket
+  req.app.get("io").emit("updateProducts", getProducts());
+
+  res.status(200).json({
+    message: `Product with ID ${req.params.pid} successfully deleted`,
+  });
 });
 
 export default router;
