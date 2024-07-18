@@ -1,13 +1,2 @@
 [
-  {
-    "id": "1",
-    "title": "PC Gamer",
-    "description": "High performance PC",
-    "code": "PCG123",
-    "price": 2000,
-    "status": true,
-    "stock": 10,
-    "category": "Computers",
-    "thumbnails": []
-  }
 ]

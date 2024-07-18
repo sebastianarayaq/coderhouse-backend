@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart</title>
+</head>
+<body>
+    <h1>Cart</h1>
+    <ul id="cart-products-list">
+      {{#each products}}
+        <li>ID: {{this.product._id}} - Title: {{this.product.title}} - Quantity: {{this.quantity}}</li>
+      {{/each}}
+    </ul>
+    <div>
+      <a href="/products?cartId={{cartId}}">Back to Products</a>
+    </div>
+</body>
+</html>

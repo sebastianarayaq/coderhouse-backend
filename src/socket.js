@@ -1,11 +1,10 @@
 import { getProducts, saveProducts } from "./utils/productUtils.js";
 
 export const initializeSocket = (io) => {
-  let connectionCount = 0;
+  
 
   io.on("connection", (socket) => {
-    connectionCount++;
-    console.log(`New client connected. Total connections: ${connectionCount}`);
+    console.log('New client connected');
 
     socket.emit("updateProducts", getProducts());
 
@@ -36,8 +35,7 @@ export const initializeSocket = (io) => {
     });
 
     socket.on("disconnect", () => {
-      connectionCount--;
-      console.log(`Client disconnected. Total connections: ${connectionCount}`);
+      console.log("Client disconnected");
     });
   });
 };
