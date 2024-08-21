@@ -3,9 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Products</title>
+    <title>{{title}}</title>
 </head>
 <body>
+    <header>
+        <h1>Welcome {{user.first_name}} {{user.last_name}}</h1>
+        <a href="/logout">Logout</a>
+    </header>
+    
     <h1>Products List</h1>
     <ul id="product-list">
       {{#each products}}
@@ -25,18 +30,25 @@
       {{/if}}
     </div>
     <div>
-      <a href="/carts/{{cartId}}">View Cart</a>
+      <a href="/carts">View Cart</a>
     </div>
 
     <script>
       function addToCart(productId) {
-        const cartId = new URLSearchParams(window.location.search).get('cartId');
-        fetch(`/api/carts/${cartId}/products/${productId}`, {
+        fetch(`/api/carts/add-product`, {
           method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ productId }),
         })
         .then(response => response.json())
         .then(data => {
-          alert('Product added to cart');
+          if (data.message) {
+            alert('Product added to cart');
+          } else {
+            alert('Error adding product to cart');
+          }
         })
         .catch(error => {
           console.error('Error:', error);

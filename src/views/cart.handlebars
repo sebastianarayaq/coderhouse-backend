@@ -6,14 +6,41 @@
     <title>Cart</title>
 </head>
 <body>
-    <h1>Cart</h1>
+    <h1>Your Cart</h1>
     <ul id="cart-products-list">
       {{#each products}}
-        <li>ID: {{this.product._id}} - Title: {{this.product.title}} - Quantity: {{this.quantity}}</li>
+        <li>
+          Product: {{this.product.title}} - Quantity: {{this.quantity}} - Price: ${{this.product.price}}
+          <button onclick="removeFromCart('{{this.product._id}}')">Remove</button>
+        </li>
       {{/each}}
     </ul>
     <div>
-      <a href="/products?cartId={{cartId}}">Back to Products</a>
+      <a href="/products">Back to Products</a>
     </div>
+
+    <script>
+      function removeFromCart(productId) {
+        fetch(`/api/carts/remove-product`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ productId }),
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.message) {
+            alert('Product removed from cart');
+            window.location.reload();
+          } else {
+            alert('Error removing product from cart');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+      }
+    </script>
 </body>
 </html>

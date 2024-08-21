@@ -1,6 +1,7 @@
 import express from 'express';
 import Cart from '../models/Cart.js';
 import Product from '../models/Product.js';
+import passport from 'passport';
 
 const router = express.Router();
 
@@ -16,7 +17,7 @@ router.post('/', async (req, res) => {
 });
 
 // Obtener carrito por ID
-router.get('/:cid', async (req, res) => {
+router.get('/:cid', passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     const cart = await Cart.findById(req.params.cid).populate('products.product');
     if (cart) {
@@ -29,44 +30,54 @@ router.get('/:cid', async (req, res) => {
   }
 });
 
-// Agregar producto al carrito
-router.post('/:cid/products/:pid', async (req, res) => {
+// Agregar producto al carrito del usuario autenticado
+router.post('/add-product', passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
-    const cart = await Cart.findById(req.params.cid);
+    const user = req.user;
+    const { productId } = req.body;
+
+    const cart = await Cart.findById(user.cart);
     if (!cart) {
-      return res.status(404).json({ message: `Cart with ID ${req.params.cid} was not found` });
+      return res.status(404).json({ message: 'Cart not found' });
     }
-    const product = await Product.findById(req.params.pid);
+
+    const product = await Product.findById(productId);
     if (!product) {
-      return res.status(404).json({ message: `Product with ID ${req.params.pid} was not found` });
+      return res.status(404).json({ message: 'Product not found' });
     }
-    const productIndex = cart.products.findIndex(p => p.product.equals(req.params.pid));
+
+    const productIndex = cart.products.findIndex(p => p.product.equals(productId));
     if (productIndex === -1) {
-      cart.products.push({ product: req.params.pid, quantity: 1 });
+      cart.products.push({ product: productId, quantity: 1 });
     } else {
       cart.products[productIndex].quantity += 1;
     }
+
     await cart.save();
-    res.status(201).json(cart);
+    res.status(201).json({ message: 'Product added to cart' });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
 });
 
-// Eliminar producto del carrito
-router.delete('/:cid/products/:pid', async (req, res) => {
+// Eliminar producto del carrito del usuario autenticado
+router.delete('/remove-product', passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
-    const cart = await Cart.findById(req.params.cid);
+    const user = req.user;
+    const { productId } = req.body;
+
+    const cart = await Cart.findById(user.cart);
     if (!cart) {
-      return res.status(404).json({ message: `Cart with ID ${req.params.cid} was not found` });
+      return res.status(404).json({ message: 'Cart not found' });
     }
-    const productIndex = cart.products.findIndex(p => p.product.equals(req.params.pid));
+
+    const productIndex = cart.products.findIndex(p => p.product.equals(productId));
     if (productIndex !== -1) {
       cart.products.splice(productIndex, 1);
       await cart.save();
-      res.status(200).json({ message: `Product with ID ${req.params.pid} successfully removed from cart` });
+      res.status(200).json({ message: 'Product removed from cart' });
     } else {
-      res.status(404).json({ message: `Product with ID ${req.params.pid} was not found in the cart` });
+      res.status(404).json({ message: 'Product not found in cart' });
     }
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });

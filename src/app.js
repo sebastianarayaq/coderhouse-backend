@@ -6,10 +6,15 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import productsRouter from './routes/products.js';
 import cartsRouter from './routes/carts.js';
+import authRouter from './routes/auth.js';
 import { initializeSocket } from './socket.js';
 import connectDB from './config/db.js';
-import Product from './models/Product.js';
+import passport from './config/passport.js';
+import cookieParser from 'cookie-parser';
+import jwt from 'jsonwebtoken';
 import Cart from './models/Cart.js';
+import Product from './models/Product.js';
+import Handlebars from 'handlebars';
 
 // Conectar a la base de datos
 connectDB();
@@ -32,8 +37,21 @@ app.engine('handlebars', engine({
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, 'views'));
 
+// Registrar helper buildUrl`
+Handlebars.registerHelper('buildUrl', (limit, page, sort, query, cartId) => {
+  const params = new URLSearchParams();
+  if (limit) params.append('limit', limit);
+  if (page) params.append('page', page);
+  if (sort && sort !== 'undefined') params.append('sort', sort);
+  if (query && query !== 'undefined') params.append('query', query);
+  if (cartId && cartId !== 'undefined') params.append('cartId', cartId);
+  return `/products?${params.toString()}`;
+});
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(cookieParser());
+app.use(passport.initialize());
 
 app.use((req, res, next) => {
   req.app.set('io', io);
@@ -42,26 +60,61 @@ app.use((req, res, next) => {
 
 app.use('/api/products', productsRouter);
 app.use('/api/carts', cartsRouter);
+app.use('/api/sessions', authRouter);
 
-app.get('/', async (req, res) => {
-  try {
-    const carts = await Cart.find();
-    res.render('home', { title: 'Home', carts });
-  } catch (error) {
-    res.status(500).json({ status: 'error', message: error.message });
+// Redirección inicial dependiendo del estado de autenticación
+app.get('/', (req, res) => {
+  const token = req.cookies.token;
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, 'jwt_secret');
+      console.log('Token verificado:', decoded);
+      return res.redirect('/products');
+    } catch (error) {
+      console.log('Error al verificar el token:', error.message);
+      return res.redirect('/login');
+    }
+  } else {
+    console.log('No se encontró un token');
+    return res.redirect('/login');
   }
 });
 
-app.get('/realtimeproducts', (req, res) => {
-  res.render('realTimeProducts', { title: 'Real-Time Products' });
+// Ruta para view de login
+app.get('/login', (req, res) => {
+  const token = req.cookies.token;
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, 'jwt_secret');
+      console.log('Token verificado en /login:', decoded);
+      return res.redirect('/products');
+    } catch (error) {
+      console.log('Error al verificar el token en /login:', error.message);
+    }
+  }
+  res.render('login', { title: 'Login' });
 });
 
-app.get('/products', async (req, res) => {
+// Ruta para view de register
+app.get('/register', (req, res) => {
+  const token = req.cookies.token;
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, 'jwt_secret');
+      return res.redirect('/products');
+    } catch (error) {
+      console.log('Error al verificar el token en /register:', error.message);
+    }
+  }
+  res.render('register', { title: 'Register' });
+});
+
+// Ruta protegida para mostrar los productos, redirige a login si no está autenticado
+app.get('/products', passport.authenticate('jwt', { session: false, failureRedirect: '/login' }), async (req, res) => {
   try {
     const { limit = 10, page = 1, sort, query, cartId } = req.query;
     
-    // Manejar parámetros undefined
-    const sortOption = sort && (sort === 'asc' || sort === 'desc') ? { price: sort === 'asc' ? 1 : -1 } : {};
+    const sortOption = sort && (sort !== 'undefined') ? { price: sort === 'asc' ? 1 : -1 } : {};
     const queryObj = query && query !== 'undefined' ? { category: query } : {};
 
     const options = {
@@ -81,23 +134,55 @@ app.get('/products', async (req, res) => {
       page: products.page,
       hasPrevPage: products.hasPrevPage,
       hasNextPage: products.hasNextPage,
-      prevLink: products.hasPrevPage ? `/products?limit=${limit}&page=${products.prevPage}&sort=${sort}&query=${query}&cartId=${cartId}` : null,
-      nextLink: products.hasNextPage ? `/products?limit=${limit}&page=${products.nextPage}&sort=${sort}&query=${query}&cartId=${cartId}` : null,
-      cartId: cartId
+      prevLink: products.hasPrevPage ? Handlebars.helpers.buildUrl(limit, products.prevPage, sort, query, cartId) : null,
+      nextLink: products.hasNextPage ? Handlebars.helpers.buildUrl(limit, products.nextPage, sort, query, cartId) : null,
+      cartId: cartId,
+      user: req.user // Pasar el usuario autenticado a la vista
     });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
 });
 
-app.get('/carts/:cid', async (req, res) => {
+// Ruta protegida para desloguear al usuario, redirige a login si no está autenticado
+app.get('/logout', passport.authenticate('jwt', { session: false, failureRedirect: '/login' }), (req, res) => {
+  res.clearCookie('token');
+  res.redirect('/login');
+});
+
+// Ruta protegida para mostrar el carrito del usuario autenticado
+app.get('/carts', passport.authenticate('jwt', { session: false, failureRedirect: '/login' }), async (req, res) => {
+  try {
+    const cart = await Cart.findById(req.user.cart).populate('products.product');
+    if (cart) {
+      res.render('cart', {
+        title: 'Cart',
+        products: cart.products,
+        cartId: req.user.cart,
+        user: req.user
+      });
+    } else {
+      res.status(404).json({ status: 'error', message: 'Cart not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// Otras rutas
+app.get('/realtimeproducts', (req, res) => {
+  res.render('realTimeProducts', { title: 'Real-Time Products' });
+});
+
+app.get('/carts/:cid', passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     const cart = await Cart.findById(req.params.cid).populate('products.product');
     if (cart) {
       res.render('cart', {
         title: 'Cart',
         products: cart.products,
-        cartId: req.params.cid
+        cartId: req.params.cid,
+        user: req.user
       });
     } else {
       res.status(404).json({ status: 'error', message: `Cart with ID ${req.params.cid} was not found` });
