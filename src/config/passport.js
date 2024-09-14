@@ -1,11 +1,18 @@
 import passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import User from '../models/User.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const opts = {
   jwtFromRequest: ExtractJwt.fromExtractors([(req) => req.cookies.token]),
-  secretOrKey: 'jwt_secret',
+  secretOrKey: process.env.JWT_SECRET,
 };
+
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET is not defined in environment variables');
+}
 
 passport.use(
   new JwtStrategy(opts, async (jwt_payload, done) => {

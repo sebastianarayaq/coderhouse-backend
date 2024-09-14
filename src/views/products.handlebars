@@ -1,59 +1,56 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{title}}</title>
-</head>
-<body>
-    <header>
-        <h1>Welcome {{user.first_name}} {{user.last_name}}</h1>
-        <a href="/logout">Logout</a>
-    </header>
-    
-    <h1>Products List</h1>
-    <ul id="product-list">
-      {{#each products}}
-        <li>
-          Title: {{this.title}} - Price: ${{this.price}} - Category: {{this.category}} - Status: {{this.status}}
-          <button onclick="addToCart('{{this._id}}')">Add to Cart</button>
-        </li>
-      {{/each}}
-    </ul>
-    <div id="pagination">
-      {{#if hasPrevPage}}
-        <a href="{{prevLink}}">Previous</a>
-      {{/if}}
-      <span>Page {{page}} of {{totalPages}}</span>
-      {{#if hasNextPage}}
-        <a href="{{nextLink}}">Next</a>
-      {{/if}}
-    </div>
-    <div>
-      <a href="/carts">View Cart</a>
-    </div>
+<h1>Products List</h1>
 
-    <script>
-      function addToCart(productId) {
-        fetch(`/api/carts/add-product`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ productId }),
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.message) {
-            alert('Product added to cart');
-          } else {
-            alert('Error adding product to cart');
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-        });
+<!-- Mostrar el nombre del usuario y el botón de logout -->
+<header>
+  <h2>Welcome, {{user.first_name}} {{user.last_name}}</h2>
+  <a href="/logout">Logout</a> <!-- Botón para hacer logout -->
+</header>
+
+<!-- Listado de productos -->
+<ul id="product-list">
+  {{#each products}}
+    <li>
+      <strong>Title:</strong> {{this.title}} -
+      <strong>Price:</strong> ${{this.price}} -
+      <strong>Category:</strong> {{this.category}} -
+      <strong>Status:</strong> {{this.status}}
+      <button onclick="addToCart('{{this._id}}')">Add to Cart</button>
+    </li>
+  {{/each}}
+</ul>
+<!-- Paginación -->
+<div id="pagination">
+  {{#if prevLink}}
+    <a href="{{prevLink}}">Previous</a> <!-- Enlace para la página anterior -->
+  {{/if}}
+  <span>Page {{page}} of {{totalPages}}</span> <!-- Información de la página actual -->
+  {{#if nextLink}}
+    <a href="{{nextLink}}">Next</a> <!-- Enlace para la siguiente página -->
+  {{/if}}
+</div>
+<!-- Botón para ir al carrito -->
+<div>
+  <a href="/carts">Go to Cart</a> <!-- Enlace para ver el carrito -->
+</div>
+<script>
+  function addToCart(productId) {
+    fetch('/api/carts/add-product', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ productId }),
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.message) {
+        alert('Product added to cart');
+      } else {
+        alert('Error adding product to cart');
       }
-    </script>
-</body>
-</html>
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+  }
+</script>

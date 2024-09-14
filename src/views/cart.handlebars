@@ -3,44 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cart</title>
+    <title>Your Cart</title>
 </head>
 <body>
     <h1>Your Cart</h1>
     <ul id="cart-products-list">
-      {{#each products}}
-        <li>
-          Product: {{this.product.title}} - Quantity: {{this.quantity}} - Price: ${{this.product.price}}
-          <button onclick="removeFromCart('{{this.product._id}}')">Remove</button>
-        </li>
-      {{/each}}
+        {{#each products}}
+            <li>
+                Product: {{this.product.title}} - Quantity: {{this.quantity}} - Price: ${{this.product.price}}
+                <button onclick="removeFromCart('{{this.product._id}}')">Remove</button>
+            </li>
+        {{/each}}
     </ul>
+
+    <!-- Cambia el botón a un formulario que envía la solicitud POST al servidor -->
+    <form action="/api/carts/{{cartId}}/purchase" method="POST">
+        <button type="submit">Finalize Purchase</button>
+    </form>
+    
     <div>
-      <a href="/products">Back to Products</a>
+        <a href="/products">Back to Products</a>
     </div>
 
     <script>
-      function removeFromCart(productId) {
-        fetch(`/api/carts/remove-product`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ productId }),
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.message) {
-            alert('Product removed from cart');
-            window.location.reload();
-          } else {
-            alert('Error removing product from cart');
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-        });
-      }
+        function removeFromCart(productId) {
+            fetch(`/api/carts/remove-product`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ productId }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert('Product removed from cart');
+                    window.location.reload();
+                } else {
+                    alert('Error removing product from cart');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
     </script>
 </body>
 </html>
